@@ -471,3 +471,182 @@ public class GraphAdjList<T>
         }
     }
 }
+
+public class DirecNetAdjMatrix<T> 
+{ 
+    private T[] nodes;
+    private int numArcs { get; set; }
+    private int[,] matrix;
+
+    public DirecNetAdjMatrix(int n)
+    {
+        nodes = new T[n];
+        matrix = new int[n, n];
+        numArcs = 0;
+    }
+
+    // 获取索引为index的顶点信息
+    public T GetNode(int index)
+    {
+        return nodes[index];
+    }
+
+    // 设置索引为index的顶点的信息
+    public void SetNode(int index,T v)
+    {
+        nodes[index] = v;
+    }
+
+    // 获取弧
+    public int GetMatrix(int index1,int index2)
+    {
+        return matrix[index1, index2];
+    }
+
+    // 获取顶点数目
+    public int GetNumOfVertex()
+    {
+        return nodes.Length;
+    }
+
+    // 获取弧数目
+    public int GetNumOfArcs()
+    {
+        return numArcs;
+    }
+
+    // 判断v是否是网的顶点
+    public bool IsNode(T v)
+    {
+        foreach (T node in nodes)
+        {
+            if (v.Equals(node))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // 获取v在顶点数组中的索引
+    public int GetIndex(T v)
+    {
+        int i = -1;
+        for ( i = 0; i < nodes.Length; ++i)
+        {
+            if (nodes[i].Equals(v))
+            {
+                return i;
+            }
+        }
+        return i;
+    }
+
+    // 添加弧
+    public int SetArc(T v1, T v2, int v)
+    {
+        if (!IsNode(v1) || !IsNode(v2))
+        {
+            Console.WriteLine("Node not belong to Graph!");
+            return 0;
+        }
+        matrix[GetIndex(v1), GetIndex(v2)] = v;
+        return 1;
+    }
+
+    // 删除弧
+    public int DelArc(T v1, T v2)
+    {
+        if (!IsNode(v1) || !IsNode(v2))
+        {
+            Console.WriteLine("Node not belong to Graph!");
+            return 0;
+        }
+
+        if (matrix[GetIndex(v1),GetIndex(v2)]==int.MaxValue)
+        {
+            return 1;
+        }
+        matrix[GetIndex(v1), GetIndex(v2)] = int.MaxValue;
+        --numArcs;
+        return 1;
+    }
+
+    // 判断是否为弧
+    public bool IsArc(T v1,T v2)
+    {
+        if (!IsNode(v1) || !IsNode(v2))
+        {
+            Console.WriteLine("Node not belong to Graph!");
+            return false;
+        }
+
+        if (matrix[GetIndex(v1), GetIndex(v2)] == int.MaxValue)
+            return false;
+        else
+            return true;
+    }
+
+    // Dijkstra算法单源最短路
+    public void Dijkstra(ref bool[,] pathMatricArr,ref int[] shortPathArr,T n)
+    {
+        int k = 0;
+        bool[] final = new bool[nodes.Length];
+
+        // 初始化
+        for (int i = 0; i < nodes.Length; ++i)
+        {
+            final[i] = false;
+            shortPathArr[i] = matrix[GetIndex(n), i];
+            for (int j = 0; j < nodes.Length; ++j)
+            {
+                pathMatricArr[i, j] = false;
+            }
+            if (shortPathArr[i] != 0 && shortPathArr[i] < int.MaxValue)
+            {
+                pathMatricArr[i, GetIndex(n)] = true;
+                pathMatricArr[i, i] = true;
+            }
+        }
+
+        // n为源点，处理n到n的最短路径
+        shortPathArr[GetIndex(n)] = 0;
+        final[GetIndex(n)] = true;
+
+        // 处理n到其余顶点的最短路径
+        for (int i = 0; i < nodes.Length; ++i)
+        {
+            int min = int.MaxValue;
+
+            // 比较n到其余顶点的路径长度
+            for (int j = 0; j < nodes.Length; ++j)
+            {
+                if (!final[j])
+                {
+                    if (shortPathArr[j] < min)
+                    {
+                        k = j;
+                        min = shortPathArr[j];
+                    }
+                }
+            }
+
+            // n到顶点k的路径长度最小
+            final[k] = true;
+
+            // 更新当前最短路径及距离
+            for (int j = 0; j < nodes.Length; ++j)
+            {
+                if (!final[j] && (min + matrix[k, j] < shortPathArr[j]))
+                {
+                    shortPathArr[j] = min + matrix[k, j];
+                    for (int w = 0; w < nodes.Length; ++w)
+                    {
+                        pathMatricArr[j, w] = pathMatricArr[k, w];
+                    }
+                    pathMatricArr[j, j] = true;
+                }
+            }
+        }
+    }
+}
